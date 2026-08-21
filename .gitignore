@@ -1,0 +1,22 @@
+# Python virtual environment
+.venv/
+__pycache__/
+*.pyc
+
+# Generated data - never commit
+data/raw/*
+!data/raw/.gitkeep
+
+# Power BI temp files
+*.pbix.tmp
+~$*
+
+# OS and editor clutter
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+
+# Secrets
+.env
+*.env
