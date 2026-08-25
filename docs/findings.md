@@ -107,7 +107,91 @@ failures will rank first by revenue at risk. The two top-three lists will not
 match, because higher-value orders are more often paid by card, and cards are
 the method that triggers authentication.
 
-**Answer:** _pending_
+**Answer:** **Answer: Insufficient funds is the single most expensive failure reason
+(₹8.25M, 20.2% of lost payment revenue), and issuer declines are the most
+expensive category (₹17.77M, 43.4%). Ranking by count and by money produces
+almost the same order. The finding that matters is that 86.8% of the lost money
+died on a retryable failure.**
+
+Scope: the ₹40,923,725 lost between payment attempted and authorised (Q1).
+Each checkout is attributed to the reason on its **last** failed attempt — the
+one on screen when the customer stopped. Alternatives (first failure, or
+splitting across all failures) were rejected: first-failure ignores where they
+actually gave up, and splitting double-counts and breaks reconciliation to Q1.
+
+**Top ten reasons by revenue lost.**
+
+| # | Reason | Class | Retryable | Failed attempts | Checkouts lost | Value lost | Avg lost basket | % of value | Rank by count |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | Insufficient funds | Soft | Yes | 9,683 | 4,827 | ₹8,253,944 | ₹1,710 | 20.17% | 1 |
+| 2 | OTP timeout | Abandoned | Yes | 4,768 | 2,376 | ₹4,721,030 | ₹1,987 | 11.54% | 2 |
+| 3 | 3DS authentication failed | Soft | Yes | 2,611 | 1,304 | ₹2,487,186 | ₹1,907 | 6.08% | 4 |
+| 4 | Transaction limit exceeded | Soft | Yes | 2,714 | 1,408 | ₹2,225,924 | ₹1,581 | 5.44% | 3 |
+| 5 | Incorrect OTP | Soft | Yes | 2,206 | 1,110 | ₹2,222,960 | ₹2,003 | 5.43% | 8 |
+| 6 | Do not honour | Soft | Yes | 2,209 | 1,085 | ₹2,167,393 | ₹1,998 | 5.30% | 7 |
+| 7 | Bank unavailable | Operational | Yes | 2,490 | 1,262 | ₹1,903,918 | ₹1,509 | 4.65% | 5 |
+| 8 | Gateway timeout | Operational | Yes | 1,857 | 957 | ₹1,837,102 | ₹1,920 | 4.49% | 9 |
+| 9 | UPI request expired | Abandoned | Yes | 2,366 | 1,178 | ₹1,598,183 | ₹1,357 | 3.91% | 6 |
+| 10 | Session expired | Abandoned | No | 1,710 | 896 | ₹1,553,475 | ₹1,734 | 3.80% | 11 |
+
+**The two rankings agree.** Ranks 1 and 2 are identical on both lists. The largest
+movement across all 26 reasons is four places. Counts vary 27× (9,683 to 355)
+while average lost basket varies less than 2× (₹2,114 to ₹1,100), so volume
+dominates the product and the money ranking collapses onto the count ranking.
+
+This is a real result, not a failed analysis. It means a payments team here can
+prioritise by volume — which is cheaper to measure — without misallocating
+effort. It would not be safe to assume that on real data, where basket values
+vary far more by failure reason than this model produces.
+
+**By category.**
+
+| Category | Reasons | Checkouts lost | Value lost | Share |
+|---|---|---|---|---|
+| Issuer | 10 | 10,227 | ₹17,766,748 | 43.41% |
+| Authentication | 4 | 5,358 | ₹10,535,199 | 25.74% |
+| Customer | 6 | 4,190 | ₹5,751,780 | 14.05% |
+| Technical | 4 | 3,031 | ₹4,772,108 | 11.66% |
+| Gateway | 2 | 1,194 | ₹2,097,890 | 5.13% |
+
+Category size is a design decision — Issuer holds 10 of 26 reasons, Gateway holds
+2 — so these totals summarise where money sits rather than rank root causes.
+
+**By recoverability — the finding that matters.**
+
+| Retryable | Checkouts lost | Value lost | Share |
+|---|---|---|---|
+| Yes | 20,973 | ₹35,529,607 | 86.82% |
+| No | 3,027 | ₹5,394,118 | 13.18% |
+
+**86.8% of the money lost at the payment step died on a failure another attempt could have survived.** 
+
+Only ₹5.39M was structurally unrecoverable — expired and
+blocked cards, closed accounts, fraud declines, KYC restrictions. Separately,
+11,667 checkouts already hit a failure and converted anyway, so recovery is
+happening; Q3 measures how much more is available.
+
+**Prediction verdict — two of three claims wrong.**
+
+*Correct:* insufficient funds ranks first by count.
+
+*Wrong:* authentication does not rank first by revenue at risk. Not as a single
+reason (insufficient funds leads at 20.2%), and not as a category (issuer leads at
+43.4% against authentication's 25.7%).
+
+*Technically correct, but far weaker than predicted:* the top-three lists do
+differ, but by a single swap at position three between two reasons one place
+apart. This was predicted as a divergence and turned out to be a hairline.
+
+*The reasoning behind the prediction did hold.* Every authentication reason has an
+above-average lost basket — incorrect OTP ₹2,003, OTP timeout ₹1,987,
+authentication service down ₹1,944, 3DS ₹1,907, against ₹1,705 overall. High-value
+orders genuinely do get stuck in authentication. That effect was real but too
+small to overcome insufficient funds' volume.
+
+**Recommendation.** Two reasons account for 31.7% of lost payment revenue and
+five account for 48.7%, so effort concentrates well. But the ranking is not the
+action — 86.8% retryability is. Before optimising any individual reason, Q3 establishes how much of that ₹35.5M a better retry path actually recovers.
 
 ---
 
