@@ -477,10 +477,10 @@ real data that card authorisation can be improved, and by how much.
 
 ---
 
+
 ### Q5. After payment succeeds, how much revenue still fails to materialise?
 
-Authorised but never captured. Captured but not fulfilled. Duplicate charges.
-Cash-on-delivery parcels refused at the door.
+Authorised but never captured. Captured but not fulfilled. Duplicate charges. Cash-on-delivery parcels refused at the door.
 
 **Prediction — again two different answers.**
 By **value**, cash-on-delivery refusal will be the largest post-payment leak.
@@ -489,7 +489,128 @@ average value will sit above the overall average — making them rare, expensive
 and worse than the number suggests, because each one also creates a refund and a
 support ticket.
 
-**Answer:** _pending_
+**Answer: ₹24.73M is lost after authorisation — 8.4% of all cart value.
+Cancellations are the largest cause at ₹15.23M (61.6%), more than double
+cash-on-delivery refusals. Separately, 762 customers were charged twice, worth
+₹1.57M, on baskets 42.6% larger than average.**
+
+**Where post-payment money goes.**
+
+| Category | Checkouts | Value lost | Share |
+|---|---|---|---|
+| Cancelled | 10,012 | ₹15,226,228 | 61.56% |
+| Refused (COD) | 6,244 | ₹6,989,612 | 28.26% |
+| Failed at capture | 1,715 | ₹2,518,735 | 10.18% |
+| Fulfilled | 158,029 | ₹0 | — |
+
+**By individual outcome.**
+
+| Outcome | Checkouts | % of authorised | Value lost | Avg cart |
+|---|---|---|---|---|
+| Cancelled by customer | 4,591 | 2.61% | ₹7,016,338 | ₹1,528 |
+| Cancelled — inventory unavailable | 4,634 | 2.63% | ₹6,972,745 | ₹1,505 |
+| COD refused at delivery | 4,167 | 2.37% | ₹4,674,289 | ₹1,122 |
+| Failed at capture | 1,715 | 0.97% | ₹2,518,735 | ₹1,469 |
+| COD customer unavailable | 2,077 | 1.18% | ₹2,315,323 | ₹1,115 |
+| Cancelled — pricing error | 787 | 0.45% | ₹1,237,145 | ₹1,572 |
+| Fulfilled | 158,029 | 89.79% | ₹0 | ₹1,438 |
+
+**Split by who could prevent it.**
+
+| Preventable by the business | Value lost | Share |
+|---|---|---|
+| Inventory unavailable | ₹6,972,745 | 28.19% |
+| Failed at capture | ₹2,518,735 | 10.18% |
+| Pricing error | ₹1,237,145 | 5.00% |
+| **Subtotal** | **₹10,728,625** | **43.38%** |
+
+| Customer's decision | Value lost | Share |
+|---|---|---|
+| Cancelled by customer | ₹7,016,338 | 28.37% |
+| COD refused at delivery | ₹4,674,289 | 18.90% |
+| COD customer unavailable | ₹2,315,323 | 9.36% |
+| **Subtotal** | **₹14,005,950** | **56.62%** |
+
+Selling inventory that does not exist is the single largest preventable
+post-payment loss at ₹6.97M. It is not a payments problem at all — it is a stock
+accuracy problem showing up in the payments data.
+
+**Cash-on-delivery refusals are frequent but cheap.** 6,244 refusals is the second
+highest count in the table, but they average ₹1,122 per order against ₹1,438
+overall, because COD customers buy smaller baskets. Counting parcels makes COD
+look like the main problem; counting rupees puts it second, at less than half the
+cost of cancellations.
+
+**Duplicate charges.**
+
+| Measure | Value |
+|---|---|
+| Online captured checkouts | 134,889 |
+| Duplicate charges | 762 |
+| Rate | 0.565% |
+| Total duplicated value | ₹1,565,666 |
+| Average basket when duplicated | ₹2,054.68 |
+| Average basket overall | ₹1,440.48 |
+
+The denominator here is **online** captured checkouts, not all captured
+checkouts. Cash on Delivery has 27,886 captured checkouts and zero duplicate
+charges, because there is no stored instrument to charge twice. Including COD in
+the denominator produces 0.468%, understating the rate by nearly 20%. The general
+test: every row in a denominator must be capable of experiencing the outcome
+being measured.
+
+Duplicated baskets average 42.6% more than normal ones. The ₹1.57M is not
+permanently lost — it is refunded — but each incident creates a refund fee, a
+support contact, and a customer who has been charged twice for one order. 762
+customers experienced this.
+
+**No evidence that retrying increases duplicate risk.**
+
+| Attempts | Captured | Duplicates | Rate |
+|---|---|---|---|
+| 1 | 123,821 | 694 | 0.560% |
+| 2 | 9,260 | 64 | 0.691% |
+| 3 | 1,645 | 4 | 0.243% |
+| 4 | 163 | 0 | 0.000% |
+
+Two attempts appears higher than one, but 64 incidents out of 9,260 carries a
+chance range of roughly 0.52% to 0.86%, which overlaps the single-attempt rate.
+The three-attempt figure rests on four incidents. This is a null result: the
+generator applies duplicates at a flat rate regardless of attempt count, and no
+relationship appeared.
+
+**Duplicates by method.**
+
+| Method | Captured | Duplicates | Rate | Value |
+|---|---|---|---|---|
+| Card | 32,133 | 226 | 0.703% | ₹593,363 |
+| Netbanking | 13,428 | 83 | 0.618% | ₹198,269 |
+| UPI | 76,691 | 398 | 0.519% | ₹709,448 |
+| Wallet | 12,637 | 55 | 0.435% | ₹64,587 |
+| Cash on Delivery | 27,886 | 0 | 0.000% | — |
+
+UPI has the most duplicate incidents (398) but the third highest rate, because it
+has by far the most captured checkouts. Card has the highest rate at 0.703%.
+
+**Prediction verdict — one wrong, one exactly right.**
+
+*Wrong:* cash-on-delivery refusal is not the largest post-payment leak by value.
+Cancellations cost ₹15.23M against COD's ₹6.99M — more than double. Even the
+single largest cancellation type, cancelled by customer at ₹7.02M, exceeds the
+largest COD type on its own.
+
+*Right, on both parts:* duplicate charges affected 0.565% of eligible checkouts,
+under the 1% predicted, and their average basket of ₹2,054.68 sits 42.6% above
+the overall average of ₹1,440.48.
+
+**Recommendation.** ₹10.73M of post-payment loss — 43.4% — is preventable by the
+business rather than chosen by the customer, and ₹6.97M of that is inventory that
+was sold but did not exist. That is the largest actionable post-payment item and
+it sits outside the payments stack entirely.
+
+Duplicate charges are small in money (₹1.57M, 6.3% of post-payment loss) but
+carry disproportionate damage: 762 customers charged twice, on baskets 42.6%
+larger than average. Rate them by relationship cost, not by rupees.
 
 ---
 
