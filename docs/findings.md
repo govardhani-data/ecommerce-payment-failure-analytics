@@ -643,6 +643,18 @@ larger baskets (`CART_MULTIPLIER_BY_METHOD`) and to fail most often
 
 **Small segments are not treated as findings.** Payment method crossed with city tier produces cells as small as 2,043 checkouts. Differences of under one percentage point in those cells are within sampling variation. One such case was identified and rejected in Q4 rather than reported.
 
+**Forty-five checkouts carry a contradictory duplicate-charge flag.**
+`fact_checkout` contains 45 rows where `is_duplicate_charge = 1` but
+`captured_datetime` is NULL — a customer recorded as charged twice on an order
+that was never charged once. All 45 were authorised before capture failed, and
+all carry ₹0 revenue, so the `ck_checkout_revenue_needs_capture` constraint held.
+The generator sets the duplicate flag before resolving whether capture succeeded.
+
+The schema has no constraint preventing this. All duplicate-charge figures in Q5
+are therefore restricted to captured checkouts, which excludes these 45 rows and
+₹98,154. A `ck_duplicate_requires_capture` constraint would have blocked them at
+load time.
+
 
 
 ---
