@@ -197,16 +197,121 @@ action — 86.8% retryability is. Before optimising any individual reason, Q3 es
 
 ### Q3. How much failed-payment revenue is realistically recoverable?
 
-Split failures into retryable and non-retryable. Measure whether retries worked,
-and on which attempt.
+Split failures into retryable and non-retryable. Measure whether retries worked and on which attempt.
 
 **Prediction.** More than half of all recovered revenue will come from the first
 retry. Recovery from the third attempt onwards will be under 5% of the total
 recovered. Among soft declines specifically, switching payment method will have
 a higher success rate than retrying the same method.
 
-**Answer:** _pending_
+**Answer:** **Answer: One in three failed checkouts recovers on its own, worth ₹19.79M.
+Nearly all of that happens on the second attempt. Customers who try a different
+payment method succeed 75.14% of the time; customers who stay on the same method
+succeed 45.93% of the time. But the size of that gap is an assumption built into
+the generator, not a discovery.**
 
+Scope: the 35,667 checkouts with at least one failed payment attempt.
+
+**How much comes back.**
+
+| Outcome | Checkouts | Cart value | Share of checkouts | Share of value |
+|---|---|---|---|---|
+| Recovered | 11,667 | ₹19,786,938 | 32.71% | 32.59% |
+| Lost | 24,000 | ₹40,923,725 | 67.29% | 67.41% |
+
+The two share columns are almost identical, so recovered baskets are worth about
+the same as lost ones. Whether a retry works does not depend on how much is in
+the cart.
+
+**Which attempt succeeds.**
+
+| Attempt | Successes | Value | Share of all successes | Share of recovered revenue |
+|---|---|---|---|---|
+| 1st | 130,203 | ₹194,080,342 | 91.78% | — |
+| 2nd | 9,758 | ₹16,472,801 | 6.88% | 83.25% |
+| 3rd | 1,739 | ₹3,001,081 | 1.23% | 15.17% |
+| 4th | 170 | ₹313,057 | 0.12% | 1.58% |
+
+These four rows total 141,870, not the 176,000 authorised checkouts from Q1. The
+difference is 34,130 Cash on Delivery orders, which are authorised without making
+any payment attempt and therefore have no row in `fact_payment_attempt`.
+
+**Switching payment method versus staying.**
+
+A checkout counts as switching if more than one payment method appears across its
+attempts. An earlier version of this analysis compared the first method against
+the last, which wrongly classified Card → UPI → Card as "same method" and
+overstated same-method recovery on hard declines by 1.2 percentage points.
+
+| Retry path | Checkouts | Recovered | Recovery rate | Value recovered |
+|---|---|---|---|---|
+| Used another method | 9,069 | 6,814 | 75.14% | ₹11,764,575 |
+| Stayed on one method | 10,565 | 4,853 | 45.93% | ₹8,022,364 |
+
+**This result is an input, not a finding.** `src/generate_attempts.py` sets
+`SWITCH_METHOD_PENALTY = 0.90` and `SAME_METHOD_RETRY_PENALTY = 0.55`. Those
+divide to 1.636. The measured rates divide to 75.14 / 45.93 = 1.636. The query
+returned the assumption it was given. Real data would be needed to establish
+whether switching genuinely helps, and by how much.
+
+**What is not an assumption:** only 9,069 of 19,634 retrying customers used a
+second method — **46.2%**. That share emerged from the interaction of several
+settings rather than being set directly, and it is the number a business could
+act on. More than half of retrying customers stay on the method that just failed.
+
+**Recovery by failure class — the shape worth reporting.**
+
+| Failure class | Stayed on one method | Used another method |
+|---|---|---|
+| Soft | 48.52% | 73.94% |
+| Abandoned | 49.85% | 77.21% |
+| Operational | 51.12% | 75.66% |
+| Hard | **7.83%** | **75.00%** |
+
+Read the right-hand column down: 73.94, 75.00, 75.66, 77.21. Almost flat. Read
+the left-hand column: 7.83, 48.52, 49.85, 51.12. Very wide.
+
+**Once the customer changes payment method, the original failure reason stops
+mattering.** If they stay on the same method it matters enormously — and on a
+hard decline such as an expired or blocked card, staying is close to futile at
+7.83%. This flatness also follows from the model, since switching resets to a
+fresh method's own success rate. The shape is worth reporting; the exact levels
+are not evidence.
+
+**Recovery by first failure reason.**
+
+The spread is narrow: 36.84% (UPI timeout) down to 21.27% (Invalid VPA), a range
+of only 1.7×. In this model, whether a customer retries is driven mainly by
+attempt number rather than by which reason they saw, so the reason has limited
+influence. The five worst-recovering reasons are all flagged non-retryable —
+fraud decline, card expired, card blocked, wallet KYC restriction, invalid VPA —
+which is the model behaving correctly.
+
+One row does not fit: `Session expired` is flagged non-retryable but recovers at
+35.23%, near the top. The flag is being used to mean "this exact attempt cannot
+be repeated" rather than "this customer cannot succeed", and the two readings
+disagree for session timeouts. The definition needs tightening.
+
+**Prediction verdict — two of three claims correct.**
+
+*Correct:* more than half of recovered revenue came from the first retry. It was
+83.25%, well beyond the threshold predicted.
+
+*Wrong:* recovery from the third attempt onwards was not under 5%. Attempts three
+and four together returned ₹3,314,137, which is 16.75% of recovered revenue. The
+direction was right — later attempts matter less — but the size was
+underestimated by more than three times.
+
+*Correct:* among soft declines, switching method beat staying, 73.94% against
+48.52%.
+
+**Recommendation.** Retries already return ₹19.79M without any intervention, and
+83% of that lands on the second attempt, so the second attempt is where any
+improvement should be aimed. A fourth attempt returned ₹313,057 across the whole
+two-year period and is not worth engineering effort. The clearest opportunity is
+that 53.8% of retrying customers stay on a method that has just failed them — but
+the value of moving them cannot be estimated from this dataset, because the
+benefit of switching was set by hand rather than measured.
 ---
 
 ### Q4. Which payment method produces the best business outcome?
