@@ -321,17 +321,159 @@ the value of moving them cannot be estimated from this dataset, because the
 benefit of switching was set by hand rather than measured.
 ---
 
+
 ### Q4. Which payment method produces the best business outcome?
 
-Success rate, average order value and total revenue together — not simply which
-method fails least.
+Success rate, average order value and total revenue together — not simply which method fails least.
 
 **Prediction.** UPI will have the highest success rate. Cards will have the
 highest average order value. Cards will contribute more total revenue than UPI
 despite failing more often — meaning a recommendation based on success rate
 alone would reduce failures and reduce revenue at the same time.
 
-**Answer:** _pending_
+**Answer: UPI wins on every measure that matters — highest success rate, highest
+volume, and 57% more revenue than Card. Card has the largest baskets and the
+worst outcome: 22.8% of checkouts, 31.4% of cart value, and 44.8% of all lost
+revenue. The ranking is identical in every city tier and on every device.**
+
+**First-attempt success rate.**
+
+| Method | First attempts | Succeeded | Success rate | Avg attempt value |
+|---|---|---|---|---|
+| UPI | 87,977 | 76,707 | 87.19% | ₹1,329 |
+| Wallet | 14,889 | 12,595 | 84.59% | ₹973 |
+| Netbanking | 17,379 | 12,443 | 71.60% | ₹1,805 |
+| Card | 45,625 | 28,458 | 62.37% | ₹2,016 |
+
+Cash on Delivery does not appear: it makes no payment attempt and therefore
+cannot fail at this step. Comparing methods on payment success alone would hand
+COD an automatic win and tell you nothing.
+
+**End-to-end outcome, measured to fulfilled revenue.**
+
+| Method | Checkouts | Avg cart | Cart value started | Fulfilled | Revenue kept | Value kept | Value lost |
+|---|---|---|---|---|---|---|---|
+| UPI | 87,977 | ₹1,329 | ₹116,944,433 | 84.16% | ₹98,366,302 | 84.11% | ₹18,578,131 |
+| Wallet | 14,889 | ₹973 | ₹14,482,568 | 81.95% | ₹11,917,202 | 82.29% | ₹2,565,366 |
+| Cash on Delivery | 34,130 | ₹1,117 | ₹38,112,624 | 81.71% | ₹31,123,012 | 81.66% | ₹6,989,612 |
+| Netbanking | 17,379 | ₹1,805 | ₹31,374,844 | 74.31% | ₹23,269,312 | 74.17% | ₹8,105,532 |
+| **Card** | **45,625** | **₹2,016** | **₹91,989,160** | **67.91%** | **₹62,569,502** | **68.02%** | **₹29,419,658** |
+
+**Card's problem is two problems stacked.**
+
+| Method | Share of checkouts | Share of cart value | Share of losses |
+|---|---|---|---|
+| Card | 22.8% | 31.4% | 44.8% |
+| UPI | 44.0% | 39.9% | 28.3% |
+| Netbanking | 8.7% | 10.7% | 12.4% |
+| Cash on Delivery | 17.1% | 13.0% | 10.6% |
+| Wallet | 7.4% | 4.9% | 3.9% |
+
+Read the Card row left to right: each figure is larger than the last. Card
+customers spend more, and card payments fail more, so the failures land on the
+expensive baskets. Every other method holds steady or shrinks across the row.
+
+Card keeps ₹68 of every ₹100 a customer tries to spend with it.
+
+**Where each method loses its money.**
+
+| Method | At payment | At capture | At fulfilment |
+|---|---|---|---|
+| Card | 80.5% | 11.6% | 7.9% |
+| Netbanking | 72.8% | 15.6% | 11.7% |
+| Wallet | 58.8% | 24.5% | 16.7% |
+| UPI | 52.9% | 28.1% | 19.0% |
+| Cash on Delivery | 0% | 100% | 0% |
+
+Four out of every five rupees Card loses die at bank authorisation. Card has one
+problem, not several. UPI's losses are spread across all three steps, so there is
+no single fix.
+
+Cash on Delivery's losses appear under "at capture" because with COD, payment and
+delivery happen at the same moment — a refused parcel is a failed capture. The
+funnel stages were designed around online payment and do not map cleanly onto an
+offline method. This is a labelling artefact, not a COD capture problem.
+
+**Cash on Delivery is not the villain.** COD authorises 100% of the time and then
+loses 18.3% at the door — 6,244 refusals worth ₹6.99M. Net, it keeps 81.66% of
+cart value, third best of five, ahead of Netbanking and 13.6 points ahead of
+Card. Card authorisation failures alone cost ₹23.69M, more than three times what
+COD refusals cost.
+
+**The ranking does not change by segment.**
+
+Value kept, by city tier:
+
+| Method | Metro | Tier 2 | Tier 3 |
+|---|---|---|---|
+| UPI | 84.31% | 83.75% | 83.98% |
+| Wallet | 82.22% | 81.28% | 84.52% |
+| Cash on Delivery | 81.50% | 81.94% | 81.72% |
+| Netbanking | 74.35% | 73.49% | 74.90% |
+| Card | 68.03% | 67.98% | 67.98% |
+
+Value kept, by device:
+
+| Method | Desktop | Mobile App | Mobile Web |
+|---|---|---|---|
+| UPI | 83.96% | 84.37% | 83.72% |
+| Wallet | 81.73% | 81.81% | 83.78% |
+| Cash on Delivery | 81.05% | 81.66% | 82.22% |
+| Netbanking | 73.83% | 74.35% | 74.08% |
+| Card | 68.34% | 68.26% | 67.21% |
+
+Card is worst in all six segments. UPI is best in five of six. No method moves
+more than about two percentage points across any segment. **One routing rule
+works for the whole business** — no tier-specific or device-specific logic is
+needed, which makes it far cheaper to build and maintain.
+
+**One cell was checked and rejected.** In Tier 3, Wallet shows 84.52% against
+UPI's 83.98%, appearing to overtake it. That cell holds 2,275 checkouts, and the
+gap is 0.54 percentage points. This is within sampling variation and is not
+treated as a finding.
+
+**What customers choose does vary by tier**, even though performance does not:
+
+| Method | Metro | Tier 2 | Tier 3 |
+|---|---|---|---|
+| Card | 28.2% | 17.9% | 10.4% |
+| UPI | 45.9% | 43.1% | 37.8% |
+| Cash on Delivery | 10.0% | 22.1% | 36.3% |
+
+Cash on Delivery rises from one in ten checkouts in Metro to more than one in
+three in Tier 3, while Card falls to one in ten. This mix is set directly in
+`METHOD_MIX_BY_TIER` and is not a finding. Its consequence is worth noting
+though: smaller cities carry less exposure to the worst-performing method.
+
+**Prediction verdict — two of three claims correct.**
+
+*Correct:* UPI has the highest success rate, 87.19%.
+
+*Correct:* Card has the highest average order value, ₹2,016 against UPI's ₹1,329.
+
+*Wrong:* Card does not contribute more total revenue than UPI. UPI brings in
+₹98.37M against Card's ₹62.57M — 57% more. The gap breaks down into three parts:
+UPI has 1.93× the checkouts, Card has 1.52× the basket, and UPI keeps 1.24× more
+of what it starts with. Multiplied out, 1.93 ÷ 1.52 × 1.24 = 1.57, exactly the
+observed gap. Card's basket advantage was swamped twice over.
+
+*The reasoning behind the prediction still holds, and matters.* Card generates
+₹62.57M of real revenue. Any recommendation to steer customers away from cards
+would destroy that revenue while improving the success-rate chart. The trap was
+correctly identified; it was placed on the wrong method.
+
+**Recommendation.** Card is the single largest source of lost revenue — ₹29.42M,
+44.8% of everything lost — and 80.5% of that dies at bank authorisation. That is
+one problem with one address, and it is the highest-value target in this dataset.
+
+Do not act by discouraging card usage. Card revenue is real and its baskets are
+the largest. The action is to improve card authorisation, not to reduce card
+volume.
+
+The size of the gap should not be read as an opportunity estimate. Card and UPI
+success rates were set by hand in `FIRST_ATTEMPT_SUCCESS` (0.63 and 0.88), so
+the distance between them is an input. Closing it would require establishing on
+real data that card authorisation can be improved, and by how much.
 
 ---
 
@@ -373,5 +515,13 @@ payment data.
 
 **Pre-payment abandonment is not modelled.** The funnel begins at checkout submission, not at cart creation or checkout page view. Customers who abandon before committing to pay are outside this dataset. A complete revenue funnel would include browse-to-cart and cart-to-checkout conversion, which requires web
 analytics data rather than payment records.
+
+**Two findings are inputs, not discoveries.** Cards were configured to carry
+larger baskets (`CART_MULTIPLIER_BY_METHOD`) and to fail most often
+(`FIRST_ATTEMPT_SUCCESS`). So "expensive orders land on the least reliable method" is arithmetic following from two chosen values, not something the data revealed. What is genuinely computed is the size of that interaction — Card carries 31.4% of cart value and 44.8% of losses — and how it compares against the other leaks. The direction was assumed; the magnitude was measured.
+
+**Small segments are not treated as findings.** Payment method crossed with city tier produces cells as small as 2,043 checkouts. Differences of under one percentage point in those cells are within sampling variation. One such case was identified and rejected in Q4 rather than reported.
+
+
 
 ---
