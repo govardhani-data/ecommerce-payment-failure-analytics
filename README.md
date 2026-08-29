@@ -57,17 +57,17 @@ Each page carries one sentence. Nothing is on a page that doesn't support it.
 **Page 1 — Where the money goes.** *We keep 77.6% of what customers try to spend.
 The biggest single leak is bank authorisation.*
 
-![Where the money goes](docs/images/01-where-the-money-goes.png)
+![Where the money goes](docs/images/01-Where-the-money-goes.png)
 
 **Page 2 — Why payments fail.** *86.8% of lost payment revenue died on a failure
 a retry could have survived.*
 
-![Why payments fail](docs/images/02-why-payments-fail.png)
+![Why payments fail](docs/images/02-Why-payments-fail.png)
 
 **Page 3 — After the money is taken.** *₹24.7M is lost after payment, and 43% of
 it is preventable by the business.*
 
-![After the money is taken](docs/images/03-after-the-money-is-taken.png)
+![After the money is taken](docs/images/03-after-the-money-taken.png)
 
 ---
 
